@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% set title = app.app_id if app else "Not Found" %}
+
+{% macro render_tree_node(node, depth=0) %}
+<div class="{% if depth > 0 %}pl-4 tree-line ml-2{% endif %}">
+  <div class="flex items-start gap-2 py-0.5">
+    <span class="text-indigo-400 flex-shrink-0">{{ node.template }}</span>
+    <span class="text-white font-semibold">"{{ node.id }}"</span>
+    {% if node.get('route') %}
+      <span class="text-gray-500">{{ node.route }}</span>
+    {% endif %}
+    {% for action in node.get('actions', []) %}
+      <span class="px-1 text-xs bg-gray-800 text-gray-300 rounded">{{ action }}</span>
+    {% endfor %}
+    <span class="text-gray-500 text-xs">{{ node.description }}</span>
+  </div>
+  {% for child in node.get('children', []) %}
+    {{ render_tree_node(child, depth + 1) }}
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% block content %}
+
+{% if not app %}
+  <p class="text-red-400">App not found or disconnected.</p>
+{% else %}
+
+<!-- Header -->
+<div class="flex items-center gap-3 mb-6">
+  <a href="/ui" class="text-gray-500 hover:text-gray-300 text-xs">← dashboard</a>
+  <span class="text-gray-600">/</span>
+  <h1 class="text-lg font-bold text-white">{{ app.app_id }}</h1>
+  {% if app.app_type == 'frontend' %}
+    <span class="px-2 py-0.5 text-xs rounded bg-indigo-900 text-indigo-300">FRONTEND</span>
+  {% else %}
+    <span class="px-2 py-0.5 text-xs rounded bg-emerald-900 text-emerald-300">BACKEND</span>
+  {% endif %}
+  <span class="flex items-center gap-1 text-xs text-green-400">
+    <span class="w-2 h-2 rounded-full bg-green-400"></span> connected {{ app.uptime_seconds }}s
+  </span>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+  <!-- Left: structure -->
+  <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+    {% if app.app_type == 'frontend' %}
+      <h2 class="font-semibold text-gray-200 mb-3">UI Tree</h2>
+      <div class="text-xs mb-2 text-gray-500">Current route:
+        <span class="text-gray-300">{{ app.current_route }}</span>
+      </div>
+      <div class="overflow-auto max-h-96">
+        {% for tree in app.trees %}
+          {{ render_tree_node(tree) }}
+        {% else %}
+          <p class="text-gray-600 text-xs">No tree registered yet.</p>
+        {% endfor %}
+      </div>
+      <h3 class="font-semibold text-gray-300 mt-4 mb-2 text-xs uppercase tracking-wider">Tools ({{ app.tools | length }})</h3>
+      <div class="space-y-1 overflow-auto max-h-48">
+        {% for t in app.tools %}
+          <div class="flex items-start gap-2 text-xs">
+            <span class="text-indigo-400 flex-shrink-0">{{ t.name }}</span>
+            <span class="text-gray-500">{{ t.description }}</span>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <h2 class="font-semibold text-gray-200 mb-3">Service Registry</h2>
+      <div class="space-y-4 overflow-auto max-h-[32rem]">
+        {% for svc in app.services %}
+          <div class="border border-gray-800 rounded p-3">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-emerald-400 font-semibold">{{ svc.name }}</span>
+              <span class="text-gray-500 text-xs">{{ svc.description }}</span>
+            </div>
+            <div class="space-y-1 pl-3 border-l border-gray-700">
+              {% for op in svc.operations %}
+                <div class="flex items-start gap-2 text-xs">
+                  <span class="text-blue-400 flex-shrink-0">{{ op.name }}</span>
+                  <span class="text-gray-500">{{ op.description }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <p class="text-gray-600 text-xs">No services registered.</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: events -->
+  <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+    <h2 class="font-semibold text-gray-200 mb-3">Recent Events</h2>
+    <div class="space-y-1 overflow-auto max-h-[32rem]">
+      {% for e in events %}
+        <div class="flex gap-3 text-xs py-1 border-b border-gray-800/50">
+          <span class="text-gray-600 w-20 flex-shrink-0">{{ e.timestamp[11:19] }}</span>
+          <span class="text-indigo-400 w-28 flex-shrink-0">{{ e.event_type }}</span>
+          <span class="text-gray-500">{{ e.actor }}</span>
+        </div>
+      {% else %}
+        <p class="text-gray-600 text-xs">No events yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endif %}
+{% endblock %}

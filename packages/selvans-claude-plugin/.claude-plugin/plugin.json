@@ -1,0 +1,11 @@
+{
+  "name": "selvans",
+  "version": "0.1.0",
+  "description": "Avvia il Core selvans e pilota qualsiasi app FE/BE collegata via i tool MCP del Core (discovery + pilotaggio semantico).",
+  "author": {
+    "name": "Gabriele Consonni",
+    "email": "grl.consonni@gmail.com"
+  },
+  "keywords": ["selvans", "mcp", "angular", "fastapi", "ui-automation", "agent"],
+  "license": "MIT"
+}

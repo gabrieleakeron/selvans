@@ -1,0 +1,36 @@
+{% macro app_card(app) %}
+<a href="/ui/apps/{{ app.app_id }}"
+   class="block bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+  <div class="flex items-start justify-between">
+    <div>
+      <span class="font-bold text-white">{{ app.app_id }}</span>
+      {% if app.app_type == 'frontend' %}
+        <span class="ml-2 px-1.5 py-0.5 text-xs rounded bg-indigo-900 text-indigo-300">FE</span>
+      {% else %}
+        <span class="ml-2 px-1.5 py-0.5 text-xs rounded bg-emerald-900 text-emerald-300">BE</span>
+      {% endif %}
+    </div>
+    <span class="w-2 h-2 mt-1 rounded-full bg-green-400 flex-shrink-0"></span>
+  </div>
+  <div class="mt-2 text-xs text-gray-400 space-y-1">
+    {% if app.app_type == 'frontend' %}
+      <div>tools: <span class="text-gray-200">{{ app.tools | length }}</span>
+           &nbsp;·&nbsp; route: <span class="text-gray-200">{{ app.current_route }}</span></div>
+    {% else %}
+      <div>services: <span class="text-gray-200">{{ app.services | length }}</span>
+           &nbsp;·&nbsp;
+           ops: <span class="text-gray-200">{{ app.services | map(attribute='operations') | map('length') | sum }}</span>
+      </div>
+    {% endif %}
+    <div>up {{ app.uptime_seconds }}s</div>
+  </div>
+</a>
+{% endmacro %}
+
+<div class="grid grid-cols-1 gap-3">
+  {% for app in apps %}
+    {{ app_card(app) }}
+  {% else %}
+    <p class="text-gray-500 py-4">No apps connected.</p>
+  {% endfor %}
+</div>

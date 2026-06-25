@@ -1,0 +1,37 @@
+{
+  "name": "selvans-angular-demo",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "demos/selvans-angular-demo/src",
+  "prefix": "app",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:application",
+      "options": {
+        "outputPath": "dist/demos/selvans-angular-demo",
+        "index": "demos/selvans-angular-demo/src/index.html",
+        "browser": "demos/selvans-angular-demo/src/main.ts",
+        "tsConfig": "demos/selvans-angular-demo/tsconfig.app.json",
+        "styles": ["demos/selvans-angular-demo/src/styles.css"],
+        "polyfills": ["zone.js"]
+      },
+      "configurations": {
+        "production": { "optimization": true, "sourceMap": false },
+        "development": { "optimization": false, "sourceMap": true }
+      }
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "options": {
+        "host": "0.0.0.0",
+        "poll": 1000,
+        "allowedHosts": ["localhost", "127.0.0.1"]
+      },
+      "configurations": {
+        "production": { "buildTarget": "selvans-angular-demo:build:production" },
+        "development": { "buildTarget": "selvans-angular-demo:build:development" }
+      },
+      "defaultConfiguration": "development"
+    }
+  }
+}

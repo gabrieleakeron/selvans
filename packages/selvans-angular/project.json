@@ -1,0 +1,31 @@
+{
+  "name": "selvans-angular",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/selvans-angular/src",
+  "prefix": "selvans",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:package",
+      "outputs": ["{workspaceRoot}/dist/packages/selvans-angular"],
+      "options": {
+        "project": "packages/selvans-angular/ng-package.json",
+        "tsConfig": "packages/selvans-angular/tsconfig.lib.json"
+      }
+    },
+    "test": {
+      "executor": "@angular-devkit/build-angular:jest",
+      "options": {
+        "tsConfig": "packages/selvans-angular/tsconfig.spec.json",
+        "include": ["packages/selvans-angular/src/**/*.spec.ts"],
+        "polyfills": ["zone.js", "zone.js/testing"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["packages/selvans-angular/**/*.ts"]
+      }
+    }
+  }
+}

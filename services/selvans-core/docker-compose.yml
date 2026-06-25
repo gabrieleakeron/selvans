@@ -1,0 +1,16 @@
+services:
+  selvans-core:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - Selvans-data:/data
+    environment:
+      Selvans_EVENTS_DB_PATH: /data/events.db
+      Selvans_HOST: "0.0.0.0"
+      Selvans_PORT: "8080"
+      # Selvans_ALLOWED_ORIGINS: "http://localhost:4200,http://localhost:3000"
+    restart: unless-stopped
+
+volumes:
+  Selvans-data:

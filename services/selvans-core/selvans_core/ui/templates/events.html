@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% set title = "Events" %}
+
+{% set level_colors = {
+  'info':  'text-gray-400',
+  'warn':  'text-yellow-400',
+  'error': 'text-red-400'
+} %}
+
+{% block content %}
+<div class="mb-5 flex items-center justify-between">
+  <h1 class="text-lg font-bold text-white">Events</h1>
+  <span class="text-xs text-gray-500">{{ events | length }} results</span>
+</div>
+
+<!-- Filter bar (HTMX form) -->
+<form hx-get="/ui/events"
+      hx-target="#events-table"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+      class="flex flex-wrap gap-3 mb-5 p-3 bg-gray-900 border border-gray-800 rounded-lg">
+
+  <select name="app_id"
+          class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200">
+    <option value="">All apps</option>
+    {% for app in apps %}
+      <option value="{{ app.app_id }}" {% if filter_app == app.app_id %}selected{% endif %}>
+        {{ app.app_id }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <select name="event_type"
+          class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200">
+    <option value="">All types</option>
+    {% for t in ['app.connected','app.disconnected','tool.called','tool.result','tool.error','structure.updated','mcp.request'] %}
+      <option value="{{ t }}" {% if filter_type == t %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="level"
+          class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200">
+    <option value="">All levels</option>
+    <option value="info"  {% if filter_level == 'info' %}selected{% endif %}>info</option>
+    <option value="warn"  {% if filter_level == 'warn' %}selected{% endif %}>warn</option>
+    <option value="error" {% if filter_level == 'error' %}selected{% endif %}>error</option>
+  </select>
+
+  <button type="submit"
+          class="px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded text-xs text-white transition-colors">
+    Filter
+  </button>
+  <a href="/ui/events" class="px-3 py-1 text-xs text-gray-400 hover:text-gray-200 transition-colors">
+    Reset
+  </a>
+</form>
+
+<!-- Events table -->
+<div id="events-table">
+  <div class="overflow-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="text-gray-500 border-b border-gray-800 text-left">
+          <th class="py-2 pr-4 w-24">Time</th>
+          <th class="py-2 pr-4 w-32">Type</th>
+          <th class="py-2 pr-4 w-28">App</th>
+          <th class="py-2 pr-4 w-20">Actor</th>
+          <th class="py-2 pr-4">Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+        <tr class="border-b border-gray-800/40 hover:bg-gray-900/50">
+          <td class="py-1.5 pr-4 text-gray-600">{{ e.timestamp[11:19] }}</td>
+          <td class="py-1.5 pr-4 text-indigo-400">{{ e.event_type }}</td>
+          <td class="py-1.5 pr-4 text-gray-300">{{ e.app_id }}</td>
+          <td class="py-1.5 pr-4 text-gray-500">{{ e.actor }}</td>
+          <td class="py-1.5 {{ level_colors.get(e.level, 'text-gray-400') }}">{{ e.level }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="py-6 text-center text-gray-600">No events found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

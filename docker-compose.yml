@@ -1,0 +1,103 @@
+services:
+  selvans-core:
+    build:
+      context: ./services/selvans-core
+    ports:
+      - "8080:8080"
+    volumes:
+      - Selvans-data:/data
+      # dev: live-reload del sorgente senza rebuild dell'immagine
+      - ./services/selvans-core/Selvans_core:/app/Selvans_core
+    command: ["uvicorn", "Selvans_core.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+    environment:
+      Selvans_EVENTS_DB_PATH: /data/events.db
+      Selvans_HOST: "0.0.0.0"
+      Selvans_PORT: "8080"
+      # CORS: consente al browser (Angular su :4200) di parlare col Core.
+      # Pydantic-settings v2 richiede JSON array per i campi list[str].
+      # Abilitato per il profilo "full" (containerizzato) e opzionale in dev locale.
+      Selvans_ALLOWED_ORIGINS: '["http://localhost:4200","http://localhost:3000"]'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  selvans-python-demo:
+    build:
+      context: .
+      dockerfile: demos/selvans-python-demo/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      Selvans_CORE_URL: "http://selvans-core:8080"
+      Selvans_APP_ID: "demo-backend"
+    depends_on:
+      selvans-core:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Dev container Angular con live-reload (Selvans-S6).
+  # Parte nel flusso default (nessun profilo) — avviato da `pnpm run setup`.
+  # Usa bind-mount del solo sorgente + volumi anonimi sui node_modules Linux
+  # per evitare collisioni con i binari nativi Windows dell'host.
+  # Polling abilitato (CHOKIDAR + --poll) per compatibilità Docker Desktop Windows.
+  # NOTA: non avviare insieme al profilo "full" (collisione porta 4200).
+  selvans-angular-dev:
+    build:
+      context: .
+      dockerfile: demos/selvans-angular-demo/Dockerfile.dev
+    ports:
+      - "4200:4200"
+    volumes:
+      # Sorgenti bind-montati dall'host (hot-reload al salvataggio)
+      - ./demos/selvans-angular-demo:/app/demos/selvans-angular-demo
+      - ./packages/selvans-angular:/app/packages/selvans-angular
+      # File di workspace Nx necessari a runtime
+      - ./nx.json:/app/nx.json
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./package.json:/app/package.json
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      # Volumi anonimi: proteggono i node_modules Linux dell'immagine
+      # dal bind-mount dell'host Windows (binari nativi incompatibili)
+      - /app/node_modules
+      - /app/packages/selvans-angular/node_modules
+      - /app/demos/selvans-angular-demo/node_modules
+      - /app/.nx
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+      NX_DAEMON: "false"
+    depends_on:
+      selvans-core:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4200"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      # Prima build esbuild in-container ~90-150s: evita falso "unhealthy" iniziale (Selvans-S6)
+      start_period: 180s
+
+  # Profilo "full": serve la demo Angular containerizzata (nginx, :4200).
+  # Il browser risolve il Core URL lato client (window.__Selvans_CORE_URL__ ?? http://localhost:8080),
+  # quindi questo container serve solo il bundle statico — nessuna rete Docker per il WS.
+  # Avvio: docker compose --profile full up --build
+  # (pnpm run setup --docker o setup.sh --docker usano questo profilo)
+  selvans-angular-demo:
+    build:
+      context: .
+      dockerfile: demos/selvans-angular-demo/Dockerfile
+    profiles:
+      - full
+    ports:
+      - "4200:80"
+    depends_on:
+      selvans-core:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  Selvans-data:

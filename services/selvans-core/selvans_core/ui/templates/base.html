@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>selvans core{% if title %} · {{ title }}{% endif %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] } } }
+    }
+  </script>
+  <style>
+    body { font-family: 'JetBrains Mono', monospace; }
+    .tree-line { border-left: 1px solid #374151; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen text-sm">
+
+  <header class="border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 bg-gray-950 z-10">
+    <a href="/ui" class="font-bold tracking-wider text-white">
+      selvans <span class="text-indigo-400">core</span>
+    </a>
+    <nav class="flex gap-6 text-xs text-gray-400">
+      <a href="/ui"        class="hover:text-white transition-colors">dashboard</a>
+      <a href="/ui/events" class="hover:text-white transition-colors">events</a>
+    </nav>
+  </header>
+
+  <main class="px-6 py-5 max-w-7xl mx-auto">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-gray-800 px-6 py-3 text-xs text-gray-600 text-center">
+    selvans core v0.1.0
+  </footer>
+
+</body>
+</html>

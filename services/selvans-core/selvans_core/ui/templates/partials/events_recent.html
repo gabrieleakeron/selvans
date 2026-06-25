@@ -1,0 +1,31 @@
+{% set level_colors = {
+  'info':  'text-gray-400',
+  'warn':  'text-yellow-400',
+  'error': 'text-red-400'
+} %}
+{% set type_colors = {
+  'app.connected':    'text-green-400',
+  'app.disconnected': 'text-red-400',
+  'tool.called':      'text-indigo-400',
+  'tool.result':      'text-blue-400',
+  'tool.error':       'text-red-400',
+  'structure.updated':'text-yellow-400',
+  'mcp.request':      'text-purple-400'
+} %}
+
+<div class="space-y-1">
+  {% for e in events %}
+  <div class="flex items-start gap-3 py-1 border-b border-gray-800/50 text-xs">
+    <span class="text-gray-600 flex-shrink-0 w-20">
+      {{ e.timestamp.strftime('%H:%M:%S') if e.timestamp is not string else e.timestamp[11:19] }}
+    </span>
+    <span class="{{ type_colors.get(e.event_type.value if e.event_type is not string else e.event_type, 'text-gray-400') }} flex-shrink-0 w-36 truncate">
+      {{ e.event_type.value if e.event_type is not string else e.event_type }}
+    </span>
+    <span class="text-gray-300 flex-shrink-0 w-28 truncate">{{ e.app_id }}</span>
+    <span class="text-gray-500 flex-1 min-w-0 truncate">{{ e.actor }}</span>
+  </div>
+  {% else %}
+  <p class="text-gray-600 text-xs py-2">No recent events.</p>
+  {% endfor %}
+</div>

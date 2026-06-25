@@ -1,0 +1,42 @@
+# Dockerfile.dev — Dev container per selvans-angular-demo (Selvans-S6)
+#
+# Esegue `nx serve` con live-reload su :4200. Usa polling per compatibilità
+# con i bind-mount su Docker Desktop Windows (inotify non propagato).
+#
+# Il sorgente NON viene copiato nell'immagine: arriva tramite bind-mount.
+# I node_modules Linux sono installati IN-container e protetti da volumi
+# anonimi in docker-compose.yml — non vengono mai sovrascritti dall'host Windows.
+#
+# Avvio:  docker compose up -d --build selvans-angular-dev
+# Uso:    modifica i sorgenti in demos/ o packages/selvans-angular/
+#         → il browser si aggiorna automaticamente (polling ~1s di latenza).
+#
+# NOTA: NON modificare il Dockerfile principale (profilo full / nginx).
+
+FROM node:22-alpine
+
+# Installa pnpm (stesso package manager del monorepo, versione bloccata)
+RUN corepack enable && corepack prepare pnpm@10.25.0 --activate
+
+WORKDIR /app
+
+# ── Manifest per layer cache ─────────────────────────────────────────────────
+# Copiati prima del sorgente così Docker riusa il layer "pnpm install" se
+# solo il codice cambia (il sorgente arriva via bind-mount a runtime).
+COPY package.json pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+COPY packages/selvans-angular/package.json ./packages/selvans-angular/
+
+# ── Installa le dipendenze Linux ─────────────────────────────────────────────
+# --frozen-lockfile garantisce riproducibilità.
+# Le dipendenze native (esbuild, @parcel/watcher, lmdb) vengono compilate per
+# Linux Alpine — incompatibili con i node_modules Windows dell'host.
+RUN pnpm install --frozen-lockfile
+
+EXPOSE 4200
+
+# nx serve con:
+#   --host 0.0.0.0    → raggiungibile dal browser host tramite localhost:4200
+#   --poll 1000       → polling ogni 1s (file-watching su bind-mount Windows)
+# NX_DAEMON=false e CHOKIDAR_* sono impostati in docker-compose.yml
+CMD ["pnpm", "exec", "nx", "serve", "selvans-angular-demo", "--host", "0.0.0.0", "--poll", "1000"]

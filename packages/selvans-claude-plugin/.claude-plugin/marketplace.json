@@ -1,0 +1,14 @@
+{
+  "name": "selvans-local",
+  "owner": {
+    "name": "Gabriele Consonni",
+    "email": "grl.consonni@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "selvans",
+      "source": ".",
+      "description": "Setup del Core selvans e pilotaggio FE/BE delle app collegate."
+    }
+  ]
+}

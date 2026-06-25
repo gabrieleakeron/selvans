@@ -1,0 +1,21 @@
+packages:
+  - "packages/*"
+  - "demos/*"
+
+# D5 — build-script nativi approvati.
+# Verificato empiricamente (Selvans-S3, 2026-06-14):
+#   - esbuild: richiesto da @angular-devkit/build-angular per bundling.
+#   - nx: richiesto per il daemon file-watch di nx serve/build.
+#   - @parcel/watcher: richiesto da nx per il file-watching nativo (senza, nx serve
+#     degrada a polling, con warning "No file-system watcher available").
+#   - lmdb: usato da nx come cache locale; senza, nx funziona ma con performance
+#     degradate (fallback in-memory). Incluso per evitare avvisi ambigui.
+#   - msgpackr-extract: serializzazione binaria per lmdb/nx. Non strettamente
+#     necessario per serve/build, ma richiesto da lmdb; incluso per pulizia.
+# Obiettivo: zero "Ignored build scripts" durante pnpm install.
+onlyBuiltDependencies:
+  - esbuild
+  - nx
+  - "@parcel/watcher"
+  - lmdb
+  - msgpackr-extract
